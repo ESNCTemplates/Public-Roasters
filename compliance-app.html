@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compliance Management System</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { 
+            Plus, Edit2, AlertTriangle, CheckCircle, Clock, 
+            FileText, Users, Building, Wifi, WifiOff 
+        } = lucide;
+
+        // Claude connector - REPLACE WITH YOUR ACTUAL IMPLEMENTATION
+        window.claude = {
+            complete: async (prompt) => {
+                // This is a mock implementation
+                // Replace with your actual Claude API call
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+                
+                if (prompt.includes('welcome message')) {
+                    return `Welcome to our sustainable coffee community! We're excited to partner with you in creating positive impact through responsible sourcing and transparent practices.`;
+                } else if (prompt.includes('risk analysis')) {
+                    return `Risk Analysis: This appears to be a medium-priority supply chain risk. Recommended actions: 1) Develop contingency supplier relationships 2) Implement early warning monitoring 3) Create emergency response protocols. Timeline: 30-60 days for implementation.`;
+                } else if (prompt.includes('compliance report')) {
+                    return `Executive Summary: Strong compliance performance with 95% policy adherence. Key achievements include successful environmental certification and improved labor standards. Areas for improvement: Supply chain transparency documentation. Overall Grade: A-`;
+                } else if (prompt.includes('insights')) {
+                    return `Key Insights: 1) Risk concentration in South American operations requires diversification 2) Remediation response time has improved 40% year-over-year 3) Proactive compliance monitoring is reducing incident rates significantly`;
+                }
+                return `AI Analysis: ${prompt.substring(0, 100)}... [Analysis complete]`;
+            }
+        };
+
+        // Baserow Configuration - REPLACE WITH YOUR ACTUAL VALUES
+        const BASEROW_CONFIG = {
+            baseUrl: 'https://api.baserow.io', // Replace with your Baserow URL
+            apiToken: 'your-api-token-here', // Replace with your API token
+            tableIds: {
+                roasters: 12345,        // Replace with actual table ID
+                programs: 12346,        // Replace with actual table ID
+                compliance_topics: 12347, // Replace with actual table ID
+                annual_reporting: 12348,  // Replace with actual table ID
+                annual_reporting_topics: 12349, // Replace with actual table ID
+                risks: 12350,           // Replace with actual table ID
+                remediations: 12351     // Replace with actual table ID
+            }
+        };
+
+        // Baserow API Class
+        class BaserowAPI {
+            constructor(config) {
+                this.baseUrl = config.baseUrl;
+                this.apiToken = config.apiToken;
+                this.tableIds = config.tableIds;
+            }
+
+            async request(endpoint, options = {}) {
+                const url = `${this.baseUrl}/api/database/rows/table/${endpoint}`;
+                const defaultHeaders = {
+                    'Authorization': `Token ${this.apiToken}`,
+                    'Content-Type': 'application/json'
+                };
+
+                try {
+                    const response = await fetch(url, {
+                        headers: { ...defaultHeaders, ...options.headers },
+                        ...options
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.error('Baserow API request failed:', error);
+                    throw error;
+                }
+            }
+
+            async getRecords(tableName) {
+                const tableId = this.tableIds[tableName];
+                if (!tableId) throw new Error(`Table ${tableName} not configured`);
+                
+                const response = await this.request(`${tableId}/`);
+                return response.results || [];
+            }
+
+            async createRecord(tableName, data) {
+                const tableId = this.tableIds[tableName];
+                if (!tableId) throw new Error(`Table ${tableName} not configured`);
+                
+                return await this.request(`${tableId}/`, {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+            }
+
+            async updateRecord(tableName, recordId, data) {
+                const tableId = this.tableIds[tableName];
+                if (!tableId) throw new Error(`Table ${tableName} not configured`);
+                
+                return await this.request(`${tableId}/${recordId}/`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(data)
+                });
+            }
+
+            async loadAllData() {
+                try {
+                    const [roasters, programs, reports, risks, remediations, complianceTopics] = await Promise.all([
+                        this.getRecords('roasters'),
+                        this.getRecords('programs'),
+                        this.getRecords('annual_reporting'),
+                        this.getRecords('risks'),
+                        this.getRecords('remediations'),
+                        this.getRecords('compliance_topics')
+                    ]);
+
+                    return {
+                        roasters,
+                        programs,
+                        reports,
+                        risks,
+                        remediations,
+                        complianceTopics
+                    };
+                } catch (error) {
+                    console.error('Failed to load data from Baserow:', error);
+                    throw error;
+                }
+            }
+        }
+
+        const ComplianceWorkflow = () => {
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [showConfig, setShowConfig] = useState(false);
+            const [config, setConfig] = useState(BASEROW_CONFIG);
+            const [data, setData] = useState({
+                roasters: [],
+                programs: [],
+                reports: [],
+                risks: [],
+                remediations: [],
+                complianceTopics: []
+            });
+            const [loading, setLoading] = useState(false);
+            const [connected, setConnected] = useState(false);
+            const [baserowAPI] = useState(new BaserowAPI(BASEROW_CONFIG));
+
+            // Load data from Baserow
+            useEffect(() => {
+                loadData();
+            }, []);
+
+            const loadData = async () => {
+                setLoading(true);
+                try {
+                    // Check if Baserow is properly configured
+                    if (BASEROW_CONFIG.apiToken === 'your-api-token-here') {
+                        // Use sample data if Baserow not configured
+                        const sampleData = {
+                            roasters: [
+                                { id: 1, name: 'Premium Coffee Co.', country: 'Brazil', created_at: '2024-01-15' },
+                                { id: 2, name: 'Mountain Roasters', country: 'Colombia', created_at: '2024-02-20' },
+                                { id: 3, name: 'Urban Bean Works', country: 'Ethiopia', created_at: '2024-03-10' }
+                            ],
+                            programs: [
+                                { id: 1, roaster_id: 1, name: 'Sustainability Initiative', region: 'South America', country: 'Brazil' },
+                                { id: 2, roaster_id: 2, name: 'Fair Trade Program', region: 'South America', country: 'Colombia' },
+                                { id: 3, roaster_id: 3, name: 'Direct Trade Partnership', region: 'Africa', country: 'Ethiopia' }
+                            ],
+                            reports: [
+                                { id: 1, roaster_id: 1, program_id: 1, year: 2024 },
+                                { id: 2, roaster_id: 2, program_id: 2, year: 2024 },
+                                { id: 3, roaster_id: 3, program_id: 3, year: 2024 }
+                            ],
+                            risks: [
+                                { id: 1, report_topic_id: 1, description: 'Supply chain disruption risk in Brazil region due to weather patterns' },
+                                { id: 2, report_topic_id: 2, description: 'Environmental compliance risk due to new regulations' },
+                                { id: 3, report_topic_id: 3, description: 'Labor standard compliance gap in seasonal worker documentation' }
+                            ],
+                            remediations: [
+                                { id: 1, risk_id: 1, section_a_doc: 'weather-contingency-plan.pdf', section_a_eta: '2024-08-15', section_b_status: 'in_progress', section_b_notes: 'Working with local meteorological services', follow_up_date: '2024-07-30' },
+                                { id: 2, risk_id: 2, section_a_doc: 'environmental-compliance-update.pdf', section_a_eta: '2024-09-01', section_b_status: 'pending', section_b_notes: 'Awaiting regulatory guidance', follow_up_date: '2024-08-15' }
+                            ],
+                            complianceTopics: [
+                                { id: 1, code: 'ENV-001', name: 'Environmental Standards', description: 'Environmental compliance requirements' },
+                                { id: 2, code: 'LAB-001', name: 'Labor Practices', description: 'Fair labor practice standards' },
+                                { id: 3, code: 'SUP-001', name: 'Supply Chain', description: 'Supply chain transparency requirements' }
+                            ]
+                        };
+                        setData(sampleData);
+                        setConnected(false);
+                    } else {
+                        // Load from Baserow
+                        const baserowData = await baserowAPI.loadAllData();
+                        setData(baserowData);
+                        setConnected(true);
+                    }
+                } catch (error) {
+                    console.error('Failed to load data:', error);
+                    setConnected(false);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const generateInsights = async (context) => {
+                setLoading(true);
+                try {
+                    const prompt = `Analyze this compliance data and provide 3 key insights: ${JSON.stringify(context)}`;
+                    const result = await window.claude.complete(prompt);
+                    setLoading(false);
+                    return result;
+                } catch (error) {
+                    setLoading(false);
+                    return "Unable to generate insights at this time.";
+                }
+            };
+
+            const ConfigurationPanel = () => {
+                const [tempConfig, setTempConfig] = useState(config);
+                const [testing, setTesting] = useState(false);
+
+                const testConnection = async () => {
+                    setTesting(true);
+                    try {
+                        const testAPI = new BaserowAPI(tempConfig);
+                        await testAPI.getRecords('roasters');
+                        alert('✅ Connection successful!');
+                        setConfig(tempConfig);
+                        setConnected(true);
+                        setShowConfig(false);
+                        loadData();
+                    } catch (error) {
+                        alert(`❌ Connection failed: ${error.message}`);
+                    } finally {
+                        setTesting(false);
+                    }
+                };
+
+                const updateTableId = (tableName, value) => {
+                    setTempConfig(prev => ({
+                        ...prev,
+                        tableIds: {
+                            ...prev.tableIds,
+                            [tableName]: parseInt(value) || 0
+                        }
+                    }));
+                };
+
+                return React.createElement('div', {
+                    className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                }, React.createElement('div', {
+                    className: "bg-white p-6 rounded-lg max-w-2xl w-full mx-4 max-h-96 overflow-y-auto"
+                }, [
+                    React.createElement('h3', { 
+                        key: 'title',
+                        className: "text-lg font-semibold mb-4" 
+                    }, "Baserow Configuration"),
+                    React.createElement('div', {
+                        key: 'content',
+                        className: "space-y-4"
+                    }, [
+                        React.createElement('div', { key: 'url' }, [
+                            React.createElement('label', { 
+                                key: 'url-label',
+                                className: "block text-sm font-medium mb-1" 
+                            }, "Baserow URL"),
+                            React.createElement('input', {
+                                key: 'url-input',
+                                type: "text",
+                                placeholder: "https://api.baserow.io",
+                                value: tempConfig.baseUrl,
+                                onChange: (e) => setTempConfig(prev => ({ ...prev, baseUrl: e.target.value })),
+                                className: "w-full border rounded px-3 py-2"
+                            })
+                        ]),
+                        React.createElement('div', { key: 'token' }, [
+                            React.createElement('label', { 
+                                key: 'token-label',
+                                className: "block text-sm font-medium mb-1" 
+                            }, "API Token"),
+                            React.createElement('input', {
+                                key: 'token-input',
+                                type: "password",
+                                placeholder: "Your API token",
+                                value: tempConfig.apiToken,
+                                onChange: (e) => setTempConfig(prev => ({ ...prev, apiToken: e.target.value })),
+                                className: "w-full border rounded px-3 py-2"
+                            })
+                        ]),
+                        React.createElement('div', { key: 'buttons', className: "flex space-x-2" }, [
+                            React.createElement('button', {
+                                key: 'test',
+                                onClick: testConnection,
+                                disabled: testing,
+                                className: "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                            }, testing ? 'Testing...' : 'Test & Save'),
+                            React.createElement('button', {
+                                key: 'cancel',
+                                onClick: () => setShowConfig(false),
+                                className: "px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                            }, 'Cancel')
+                        ])
+                    ])
+                ]));
+            };
+
+            const Dashboard = () => {
+                const [insights, setInsights] = useState('');
+
+                const loadInsights = async () => {
+                    const result = await generateInsights({
+                        totalRoasters: data.roasters.length,
+                        totalPrograms: data.programs.length,
+                        totalRisks: data.risks.length,
+                        totalRemediations: data.remediations.length
+                    });
+                    setInsights(result);
+                };
+
+                return React.createElement('div', { className: "space-y-6" }, [
+                    React.createElement('div', { 
+                        key: 'metrics',
+                        className: "grid grid-cols-1 md:grid-cols-4 gap-4" 
+                    }, [
+                        React.createElement('div', {
+                            key: 'roasters',
+                            className: "bg-blue-50 p-4 rounded-lg"
+                        }, React.createElement('div', {
+                            className: "flex items-center justify-between"
+                        }, [
+                            React.createElement('div', { key: 'text' }, [
+                                React.createElement('p', { 
+                                    key: 'label',
+                                    className: "text-sm text-blue-600" 
+                                }, "Total Roasters"),
+                                React.createElement('p', { 
+                                    key: 'value',
+                                    className: "text-2xl font-bold text-blue-900" 
+                                }, data.roasters.length)
+                            ]),
+                            React.createElement(Building, { 
+                                key: 'icon',
+                                className: "h-8 w-8 text-blue-600" 
+                            })
+                        ])),
+                        React.createElement('div', {
+                            key: 'programs',
+                            className: "bg-green-50 p-4 rounded-lg"
+                        }, React.createElement('div', {
+                            className: "flex items-center justify-between"
+                        }, [
+                            React.createElement('div', { key: 'text' }, [
+                                React.createElement('p', { 
+                                    key: 'label',
+                                    className: "text-sm text-green-600" 
+                                }, "Active Programs"),
+                                React.createElement('p', { 
+                                    key: 'value',
+                                    className: "text-2xl font-bold text-green-900" 
+                                }, data.programs.length)
+                            ]),
+                            React.createElement(FileText, { 
+                                key: 'icon',
+                                className: "h-8 w-8 text-green-600" 
+                            })
+                        ])),
+                        React.createElement('div', {
+                            key: 'risks',
+                            className: "bg-orange-50 p-4 rounded-lg"
+                        }, React.createElement('div', {
+                            className: "flex items-center justify-between"
+                        }, [
+                            React.createElement('div', { key: 'text' }, [
+                                React.createElement('p', { 
+                                    key: 'label',
+                                    className: "text-sm text-orange-600" 
+                                }, "Open Risks"),
+                                React.createElement('p', { 
+                                    key: 'value',
+                                    className: "text-2xl font-bold text-orange-900" 
+                                }, data.risks.length)
+                            ]),
+                            React.createElement(AlertTriangle, { 
+                                key: 'icon',
+                                className: "h-8 w-8 text-orange-600" 
+                            })
+                        ])),
+                        React.createElement('div', {
+                            key: 'remediations',
+                            className: "bg-purple-50 p-4 rounded-lg"
+                        }, React.createElement('div', {
+                            className: "flex items-center justify-between"
+                        }, [
+                            React.createElement('div', { key: 'text' }, [
+                                React.createElement('p', { 
+                                    key: 'label',
+                                    className: "text-sm text-purple-600" 
+                                }, "Remediations"),
+                                React.createElement('p', { 
+                                    key: 'value',
+                                    className: "text-2xl font-bold text-purple-900" 
+                                }, data.remediations.length)
+                            ]),
+                            React.createElement(CheckCircle, { 
+                                key: 'icon',
+                                className: "h-8 w-8 text-purple-600" 
+                            })
+                        ]))
+                    ]),
+                    React.createElement('div', {
+                        key: 'insights',
+                        className: "bg-white p-6 rounded-lg border"
+                    }, [
+                        React.createElement('div', {
+                            key: 'header',
+                            className: "flex justify-between items-center mb-4"
+                        }, [
+                            React.createElement('h3', { 
+                                key: 'title',
+                                className: "text-lg font-semibold" 
+                            }, "AI-Generated Insights"),
+                            React.createElement('button', {
+                                key: 'button',
+                                onClick: loadInsights,
+                                disabled: loading,
+                                className: "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                            }, loading ? 'Generating...' : 'Generate Insights')
+                        ]),
+                        insights && React.createElement('div', {
+                            key: 'content',
+                            className: "bg-gray-50 p-4 rounded"
+                        }, React.createElement('pre', {
+                            className: "whitespace-pre-wrap text-sm"
+                        }, insights))
+                    ])
+                ]);
+            };
+
+            const tabs = [
+                { id: 'dashboard', label: 'Dashboard', icon: FileText },
+                { id: 'roasters', label: 'Roasters', icon: Building },
+                { id: 'risks', label: 'Risk Management', icon: AlertTriangle },
+                { id: 'reporting', label: 'Reporting', icon: FileText }
+            ];
+
+            return React.createElement('div', { className: "min-h-screen bg-gray-50" }, [
+                React.createElement('div', { 
+                    key: 'header',
+                    className: "bg-white shadow-sm border-b" 
+                }, React.createElement('div', {
+                    className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+                }, [
+                    React.createElement('div', {
+                        key: 'top',
+                        className: "flex justify-between items-center py-4"
+                    }, [
+                        React.createElement('h1', {
+                            key: 'title',
+                            className: "text-2xl font-bold text-gray-900"
+                        }, "Compliance Management System"),
+                        React.createElement('div', {
+                            key: 'controls',
+                            className: "flex items-center space-x-4"
+                        }, [
+                            React.createElement('div', {
+                                key: 'status',
+                                className: "flex items-center space-x-2"
+                            }, connected ? [
+                                React.createElement(Wifi, { 
+                                    key: 'icon',
+                                    className: "h-5 w-5 text-green-500" 
+                                }),
+                                React.createElement('span', { 
+                                    key: 'text',
+                                    className: "text-sm text-green-600" 
+                                }, "Connected to Baserow")
+                            ] : [
+                                React.createElement(WifiOff, { 
+                                    key: 'icon',
+                                    className: "h-5 w-5 text-orange-500" 
+                                }),
+                                React.createElement('span', { 
+                                    key: 'text',
+                                    className: "text-sm text-orange-600" 
+                                }, "Using Sample Data")
+                            ]),
+                            React.createElement('button', {
+                                key: 'refresh',
+                                onClick: loadData,
+                                disabled: loading,
+                                className: "px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50"
+                            }, loading ? 'Loading...' : 'Refresh'),
+                            React.createElement('button', {
+                                key: 'config',
+                                onClick: () => setShowConfig(true),
+                                className: "px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                            }, 'Configure')
+                        ])
+                    ]),
+                    React.createElement('nav', {
+                        key: 'nav',
+                        className: "flex space-x-8"
+                    }, tabs.map(tab => {
+                        const Icon = tab.icon;
+                        return React.createElement('button', {
+                            key: tab.id,
+                            onClick: () => setActiveTab(tab.id),
+                            className: `flex items-center space-x-2 py-2 px-1 border-b-2 text-sm font-medium ${
+                                activeTab === tab.id
+                                    ? 'border-blue-500 text-blue-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`
+                        }, [
+                            React.createElement(Icon, {
+                                key: 'icon',
+                                className: "h-4 w-4"
+                            }),
+                            React.createElement('span', {
+                                key: 'label'
+                            }, tab.label)
+                        ]);
+                    }))
+                ])),
+                React.createElement('div', {
+                    key: 'content',
+                    className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+                }, activeTab === 'dashboard' && React.createElement(Dashboard)),
+                showConfig && React.createElement(ConfigurationPanel, { key: 'config' })
+            ]);
+        };
+
+        // Render the app
+        ReactDOM.render(React.createElement(ComplianceWorkflow), document.getElementById('root'));
+    </script>
+</body>
+</html>
