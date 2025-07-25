@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compliance Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #f59e0b;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+        
+        .tab {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+        
+        .tab:hover {
+            color: #374151;
+        }
+        
+        .main {
+            padding: 2rem 0;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .metric-card.blue { background-color: #eff6ff; }
+        .metric-card.green { background-color: #f0fdf4; }
+        .metric-card.orange { background-color: #fff7ed; }
+        .metric-card.purple { background-color: #faf5ff; }
+        
+        .metric-text h3 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .metric-text p {
+            font-size: 1.875rem;
+            font-weight: bold;
+        }
+        
+        .blue h3 { color: #2563eb; }
+        .blue p { color: #1e40af; }
+        .green h3 { color: #16a34a; }
+        .green p { color: #15803d; }
+        .orange h3 { color: #ea580c; }
+        .orange p { color: #c2410c; }
+        .purple h3 { color: #9333ea; }
+        .purple p { color: #7c3aed; }
+        
+        .icon {
+            width: 2rem;
+            height: 2rem;
+            opacity: 0.8;
+        }
+        
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .button {
+            padding: 0.5rem 1rem;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+        }
+        
+        .button:hover {
+            background: #1d4ed8;
+        }
+        
+        .button.secondary {
+            background: #6b7280;
+        }
+        
+        .button.secondary:hover {
+            background: #4b5563;
+        }
+        
+        .input {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #6b7280;
+        }
+        
+        .table td {
+            font-size: 0.875rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .alert {
+            padding: 1rem;
+            background: #f3f4f6;
+            border-radius: 0.375rem;
+            border-left: 4px solid #2563eb;
+            margin: 1rem 0;
+        }
+        
+        .risk-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .risk-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        
+        .risk-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .risk-actions button {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 0.25rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .analyze-btn {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .remediate-btn {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .status-progress {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .config-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .config-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .config-content h3 {
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .config-content label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .config-content input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .config-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="title">Compliance Management System</h1>
+                <div class="status">
+                    <span id="connection-status">⚠️ Using Sample Data</span>
+                    <button class="button secondary" onclick="showConfig()">Configure</button>
+                    <button class="button secondary" onclick="refreshData()">Refresh</button>
+                </div>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
+                <button class="tab" onclick="showTab('roasters')">🏢 Roasters</button>
+                <button class="tab" onclick="showTab('risks')">⚠️ Risk Management</button>
+                <button class="tab" onclick="showTab('reporting')">📋 Reporting</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content">
+                <div class="metrics-grid">
+                    <div class="metric-card blue">
+                        <div class="metric-text">
+                            <h3>Total Roasters</h3>
+                            <p id="roasters-count">3</p>
+                        </div>
+                        <div class="icon">🏢</div>
+                    </div>
+                    <div class="metric-card green">
+                        <div class="metric-text">
+                            <h3>Active Programs</h3>
+                            <p id="programs-count">3</p>
+                        </div>
+                        <div class="icon">📄</div>
+                    </div>
+                    <div class="metric-card orange">
+                        <div class="metric-text">
+                            <h3>Open Risks</h3>
+                            <p id="risks-count">3</p>
+                        </div>
+                        <div class="icon">⚠️</div>
+                    </div>
+                    <div class="metric-card purple">
+                        <div class="metric-text">
+                            <h3>Remediations</h3>
+                            <p id="remediations-count">2</p>
+                        </div>
+                        <div class="icon">✅</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3>AI-Generated Insights</h3>
+                        <button class="button" onclick="generateInsights()">Generate Insights</button>
+                    </div>
+                    <div id="insights-content" class="alert hidden">
+                        <strong>Key Insights:</strong><br>
+                        1) Risk concentration in South American operations requires diversification<br>
+                        2) Remediation response time has improved 40% year-over-year<br>
+                        3) Proactive compliance monitoring is reducing incident rates significantly
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roasters Tab -->
+            <div id="roasters" class="tab-content hidden">
+                <div class="card">
+                    <h3>Add New Roaster</h3>
+                    <div class="input-group">
+                        <input type="text" class="input" id="roaster-name" placeholder="Roaster Name">
+                        <input type="text" class="input" id="roaster-country" placeholder="Country">
+                    </div>
+                    <button class="button" onclick="addRoaster()">➕ Add Roaster</button>
+                </div>
+
+                <div class="card">
+                    <h3>Current Roasters</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Country</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roasters-table">
+                            <tr>
+                                <td>Premium Coffee Co.</td>
+                                <td>Brazil</td>
+                                <td>2024-01-15</td>
+                            </tr>
+                            <tr>
+                                <td>Mountain Roasters</td>
+                                <td>Colombia</td>
+                                <td>2024-02-20</td>
+                            </tr>
+                            <tr>
+                                <td>Urban Bean Works</td>
+                                <td>Ethiopia</td>
+                                <td>2024-03-10</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Risk Management Tab -->
+            <div id="risks" class="tab-content hidden">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div class="card">
+                        <h3>Current Risks</h3>
+                        <div class="risk-item">
+                            <div class="risk-header">
+                                <div>
+                                    <strong>Risk #1</strong>
+                                    <p>Supply chain disruption risk in Brazil region due to weather patterns</p>
+                                </div>
+                                <div class="risk-actions">
+                                    <button class="analyze-btn" onclick="analyzeRisk(1)">Analyze</button>
+                                    <button class="remediate-btn" onclick="remediateRisk(1)">Remediate</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-header">
+                                <div>
+                                    <strong>Risk #2</strong>
+                                    <p>Environmental compliance risk due to new regulations</p>
+                                </div>
+                                <div class="risk-actions">
+                                    <button class="analyze-btn" onclick="analyzeRisk(2)">Analyze</button>
+                                    <button class="remediate-btn" onclick="remediateRisk(2)">Remediate</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-header">
+                                <div>
+                                    <strong>Risk #3</strong>
+                                    <p>Labor standard compliance gap in seasonal worker documentation</p>
+                                </div>
+                                <div class="risk-actions">
+                                    <button class="analyze-btn" onclick="analyzeRisk(3)">Analyze</button>
+                                    <button class="remediate-btn" onclick="remediateRisk(3)">Remediate</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Active Remediations</h3>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Risk ID</th>
+                                    <th>ETA</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>2024-08-15</td>
+                                    <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+                                    <td>Working with local meteorological services</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>2024-09-01</td>
+                                    <td><span class="status-badge status-pending">PENDING</span></td>
+                                    <td>Awaiting regulatory guidance</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reporting Tab -->
+            <div id="reporting" class="tab-content hidden">
+                <div class="card">
+                    <h3>Generate Annual Reports</h3>
+                    <div class="input-group">
+                        <select class="input" id="report-roaster">
+                            <option>Select Roaster</option>
+                            <option>Premium Coffee Co.</option>
+                            <option>Mountain Roasters</option>
+                            <option>Urban Bean Works</option>
+                        </select>
+                        <input type="number" class="input" id="report-year" placeholder="Year (e.g., 2024)">
+                        <button class="button" onclick="generateReport()">Generate Report</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Existing Reports</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Report ID</th>
+                                <th>Roaster</th>
+                                <th>Program</th>
+                                <th>Year</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Premium Coffee Co.</td>
+                                <td>Sustainability Initiative</td>
+                                <td>2024</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Mountain Roasters</td>
+                                <td>Fair Trade Program</td>
+                                <td>2024</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Urban Bean Works</td>
+                                <td>Direct Trade Partnership</td>
+                                <td>2024</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div id="config-modal" class="config-modal hidden">
+        <div class="config-content">
+            <h3>Baserow Configuration</h3>
+            <label>Baserow URL:</label>
+            <input type="text" id="config-url" placeholder="https://api.baserow.io" value="https://api.baserow.io">
+            
+            <label>API Token:</label>
+            <input type="password" id="config-token" placeholder="Your API token">
+            
+            <label>Roasters Table ID:</label>
+            <input type="number" id="config-roasters" placeholder="Table ID">
+            
+            <div class="config-buttons">
+                <button class="button" onclick="saveConfig()">Test & Save</button>
+                <button class="button secondary" onclick="hideConfig()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let appData = {
+            roasters: [
+                { id: 1, name: 'Premium Coffee Co.', country: 'Brazil', created_at: '2024-01-15' },
+                { id: 2, name: 'Mountain Roasters', country: 'Colombia', created_at: '2024-02-20' },
+                { id: 3, name: 'Urban Bean Works', country: 'Ethiopia', created_at: '2024-03-10' }
+            ],
+            programs: [],
+            risks: [],
+            remediations: []
+        };
+
+        let baserowConfig = {
+            baseUrl: 'https://api.baserow.io',
+            apiToken: '',
+            tableIds: {
+                roasters: null
+            }
+        };
+
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.add('hidden'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.remove('hidden');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Configuration functions
+        function showConfig() {
+            document.getElementById('config-modal').classList.remove('hidden');
+        }
+
+        function hideConfig() {
+            document.getElementById('config-modal').classList.add('hidden');
+        }
+
+        async function saveConfig() {
+            const url = document.getElementById('config-url').value;
+            const token = document.getElementById('config-token').value;
+            const roastersTableId = document.getElementById('config-roasters').value;
+
+            if (!token || !roastersTableId) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            baserowConfig = {
+                baseUrl: url,
+                apiToken: token,
+                tableIds: {
+                    roasters: parseInt(roastersTableId)
+                }
+            };
+
+            try {
+                await testBaserowConnection();
+                document.getElementById('connection-status').textContent = '✅ Connected to Baserow';
+                hideConfig();
+                await loadDataFromBaserow();
+            } catch (error) {
+                alert('Connection failed: ' + error.message);
+            }
+        }
+
+        async function testBaserowConnection() {
+            const response = await fetch(
+                `${baserowConfig.baseUrl}/api/database/rows/table/${baserowConfig.tableIds.roasters}/`,
+                {
+                    headers: {
+                        'Authorization': `Token ${baserowConfig.apiToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        async function loadDataFromBaserow() {
+            try {
+                const response = await testBaserowConnection();
+                appData.roasters = response.results || [];
+                updateUI();
+            } catch (error) {
+                console.error('Failed to load from Baserow:', error);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('roasters-count').textContent = appData.roasters.length;
+            
+            // Update roasters table
+            const tbody = document.getElementById('roasters-table');
+            tbody.innerHTML = '';
+            
+            appData.roasters.forEach(roaster => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${roaster.name}</td>
+                    <td>${roaster.country}</td>
+                    <td>${roaster.created_at}</td>
+                `;
+            });
+        }
+
+        // App functions
+        function refreshData() {
+            if (baserowConfig.apiToken) {
+                loadDataFromBaserow();
+            } else {
+                location.reload();
+            }
+        }
+
+        function generateInsights() {
+            const content = document.getElementById('insights-content');
+            content.classList.remove('hidden');
+            alert('AI Insights generated! Key findings: Risk diversification needed, improved response times, and effective proactive monitoring.');
+        }
+
+        async function addRoaster() {
+            const name = document.getElementById('roaster-name').value;
+            const country = document.getElementById('roaster-country').value;
+            
+            if (!name || !country) {
+                alert('Please fill in both name and country fields.');
+                return;
+            }
+
+            const newRoaster = {
+                name: name,
+                country: country,
+                created_at: new Date().toISOString().split('T')[0]
+            };
+
+            if (baserowConfig.apiToken) {
+                try {
+                    const response = await fetch(
+                        `${baserowConfig.baseUrl}/api/database/rows/table/${baserowConfig.tableIds.roasters}/`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Token ${baserowConfig.apiToken}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(newRoaster)
+                        }
+                    );
+
+                    if (response.ok) {
+                        const savedRoaster = await response.json();
+                        appData.roasters.push(savedRoaster);
+                    } else {
+                        throw new Error('Failed to save to Baserow');
+                    }
+                } catch (error) {
+                    alert('Failed to save to Baserow: ' + error.message);
+                    return;
+                }
+            } else {
+                newRoaster.id = appData.roasters.length + 1;
+                appData.roasters.push(newRoaster);
+            }
+
+            document.getElementById('roaster-name').value = '';
+            document.getElementById('roaster-country').value = '';
+            
+            updateUI();
+            alert(`Welcome ${name} to our sustainable coffee community! We're excited to partner with you in creating positive impact.`);
+        }
+
+        function analyzeRisk(riskId) {
+            alert(`Risk Analysis for Risk #${riskId}: This appears to be a medium-priority risk. Recommended actions: 1) Develop contingency plans 2) Implement monitoring 3) Create response protocols. Timeline: 30-60 days.`);
+        }
+
+        function remediateRisk(riskId) {
+            alert(`Remediation plan initiated for Risk #${riskId}. Please review the remediation template and assign responsible parties.`);
+        }
+
+        function generateReport() {
+            const roaster = document.getElementById('report-roaster').value;
+            const year = document.getElementById('report-year').value;
+            
+            if (!roaster || roaster === 'Select Roaster') {
+                alert('Please select a roaster');
+                return;
+            }
+            
+            if (!year) {
+                alert('Please enter a year');
+                return;
+            }
+
+            alert(`Compliance Report Generated for ${roaster} (${year}): Strong performance with 95% policy adherence. Key achievements include environmental certification and improved labor standards. Overall Grade: A-`);
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Compliance Management System loaded successfully!');
+            updateUI();
+        });
+    </script>
+</body>
+</html>
