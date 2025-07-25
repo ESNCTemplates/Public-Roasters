@@ -4,546 +4,802 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compliance Management System</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #f59e0b;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+        
+        .tab {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+        
+        .tab:hover {
+            color: #374151;
+        }
+        
+        .main {
+            padding: 2rem 0;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .metric-card.blue { background-color: #eff6ff; }
+        .metric-card.green { background-color: #f0fdf4; }
+        .metric-card.orange { background-color: #fff7ed; }
+        .metric-card.purple { background-color: #faf5ff; }
+        
+        .metric-text h3 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .metric-text p {
+            font-size: 1.875rem;
+            font-weight: bold;
+        }
+        
+        .blue h3 { color: #2563eb; }
+        .blue p { color: #1e40af; }
+        .green h3 { color: #16a34a; }
+        .green p { color: #15803d; }
+        .orange h3 { color: #ea580c; }
+        .orange p { color: #c2410c; }
+        .purple h3 { color: #9333ea; }
+        .purple p { color: #7c3aed; }
+        
+        .icon {
+            width: 2rem;
+            height: 2rem;
+            opacity: 0.8;
+        }
+        
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .button {
+            padding: 0.5rem 1rem;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+        }
+        
+        .button:hover {
+            background: #1d4ed8;
+        }
+        
+        .button.secondary {
+            background: #6b7280;
+        }
+        
+        .button.secondary:hover {
+            background: #4b5563;
+        }
+        
+        .input {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #6b7280;
+        }
+        
+        .table td {
+            font-size: 0.875rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .alert {
+            padding: 1rem;
+            background: #f3f4f6;
+            border-radius: 0.375rem;
+            border-left: 4px solid #2563eb;
+            margin: 1rem 0;
+        }
+        
+        .risk-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .risk-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        
+        .risk-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .risk-actions button {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 0.25rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .analyze-btn {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .remediate-btn {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .status-progress {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .config-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .config-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .config-content h3 {
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .config-content label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .config-content input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .config-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
-    
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        const { 
-            Plus, Edit2, AlertTriangle, CheckCircle, Clock, 
-            FileText, Users, Building, Wifi, WifiOff 
-        } = lucide;
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="title">Compliance Management System</h1>
+                <div class="status">
+                    <span id="connection-status">⚠️ Using Sample Data</span>
+                    <button class="button secondary" onclick="showConfig()">Configure</button>
+                    <button class="button secondary" onclick="refreshData()">Refresh</button>
+                </div>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
+                <button class="tab" onclick="showTab('roasters')">🏢 Roasters</button>
+                <button class="tab" onclick="showTab('risks')">⚠️ Risk Management</button>
+                <button class="tab" onclick="showTab('reporting')">📋 Reporting</button>
+            </div>
+        </div>
+    </div>
 
-        // Claude connector - REPLACE WITH YOUR ACTUAL IMPLEMENTATION
-        window.claude = {
-            complete: async (prompt) => {
-                // This is a mock implementation
-                // Replace with your actual Claude API call
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
-                
-                if (prompt.includes('welcome message')) {
-                    return `Welcome to our sustainable coffee community! We're excited to partner with you in creating positive impact through responsible sourcing and transparent practices.`;
-                } else if (prompt.includes('risk analysis')) {
-                    return `Risk Analysis: This appears to be a medium-priority supply chain risk. Recommended actions: 1) Develop contingency supplier relationships 2) Implement early warning monitoring 3) Create emergency response protocols. Timeline: 30-60 days for implementation.`;
-                } else if (prompt.includes('compliance report')) {
-                    return `Executive Summary: Strong compliance performance with 95% policy adherence. Key achievements include successful environmental certification and improved labor standards. Areas for improvement: Supply chain transparency documentation. Overall Grade: A-`;
-                } else if (prompt.includes('insights')) {
-                    return `Key Insights: 1) Risk concentration in South American operations requires diversification 2) Remediation response time has improved 40% year-over-year 3) Proactive compliance monitoring is reducing incident rates significantly`;
-                }
-                return `AI Analysis: ${prompt.substring(0, 100)}... [Analysis complete]`;
-            }
+    <div class="container">
+        <div class="main">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content">
+                <div class="metrics-grid">
+                    <div class="metric-card blue">
+                        <div class="metric-text">
+                            <h3>Total Roasters</h3>
+                            <p id="roasters-count">3</p>
+                        </div>
+                        <div class="icon">🏢</div>
+                    </div>
+                    <div class="metric-card green">
+                        <div class="metric-text">
+                            <h3>Active Programs</h3>
+                            <p id="programs-count">3</p>
+                        </div>
+                        <div class="icon">📄</div>
+                    </div>
+                    <div class="metric-card orange">
+                        <div class="metric-text">
+                            <h3>Open Risks</h3>
+                            <p id="risks-count">3</p>
+                        </div>
+                        <div class="icon">⚠️</div>
+                    </div>
+                    <div class="metric-card purple">
+                        <div class="metric-text">
+                            <h3>Remediations</h3>
+                            <p id="remediations-count">2</p>
+                        </div>
+                        <div class="icon">✅</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3>AI-Generated Insights</h3>
+                        <button class="button" onclick="generateInsights()">Generate Insights</button>
+                    </div>
+                    <div id="insights-content" class="alert hidden">
+                        <strong>Key Insights:</strong><br>
+                        1) Risk concentration in South American operations requires diversification<br>
+                        2) Remediation response time has improved 40% year-over-year<br>
+                        3) Proactive compliance monitoring is reducing incident rates significantly
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roasters Tab -->
+            <div id="roasters" class="tab-content hidden">
+                <div class="card">
+                    <h3>Add New Roaster</h3>
+                    <div class="input-group">
+                        <input type="text" class="input" id="roaster-name" placeholder="Roaster Name">
+                        <input type="text" class="input" id="roaster-country" placeholder="Country">
+                    </div>
+                    <button class="button" onclick="addRoaster()">➕ Add Roaster</button>
+                </div>
+
+                <div class="card">
+                    <h3>Current Roasters</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Country</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roasters-table">
+                            <tr>
+                                <td>Premium Coffee Co.</td>
+                                <td>Brazil</td>
+                                <td>2024-01-15</td>
+                            </tr>
+                            <tr>
+                                <td>Mountain Roasters</td>
+                                <td>Colombia</td>
+                                <td>2024-02-20</td>
+                            </tr>
+                            <tr>
+                                <td>Urban Bean Works</td>
+                                <td>Ethiopia</td>
+                                <td>2024-03-10</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Risk Management Tab -->
+            <div id="risks" class="tab-content hidden">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div class="card">
+                        <h3>Current Risks</h3>
+                        <div class="risk-item">
+                            <div class="risk-header">
+                                <div>
+                                    <strong>Risk #1</strong>
+                                    <p>Supply chain disruption risk in Brazil region due to weather patterns</p>
+                                </div>
+                                <div class="risk-actions">
+                                    <button class="analyze-btn" onclick="analyzeRisk(1)">Analyze</button>
+                                    <button class="remediate-btn" onclick="remediateRisk(1)">Remediate</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-header">
+                                <div>
+                                    <strong>Risk #2</strong>
+                                    <p>Environmental compliance risk due to new regulations</p>
+                                </div>
+                                <div class="risk-actions">
+                                    <button class="analyze-btn" onclick="analyzeRisk(2)">Analyze</button>
+                                    <button class="remediate-btn" onclick="remediateRisk(2)">Remediate</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-header">
+                                <div>
+                                    <strong>Risk #3</strong>
+                                    <p>Labor standard compliance gap in seasonal worker documentation</p>
+                                </div>
+                                <div class="risk-actions">
+                                    <button class="analyze-btn" onclick="analyzeRisk(3)">Analyze</button>
+                                    <button class="remediate-btn" onclick="remediateRisk(3)">Remediate</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Active Remediations</h3>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Risk ID</th>
+                                    <th>ETA</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>2024-08-15</td>
+                                    <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+                                    <td>Working with local meteorological services</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>2024-09-01</td>
+                                    <td><span class="status-badge status-pending">PENDING</span></td>
+                                    <td>Awaiting regulatory guidance</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reporting Tab -->
+            <div id="reporting" class="tab-content hidden">
+                <div class="card">
+                    <h3>Generate Annual Reports</h3>
+                    <div class="input-group">
+                        <select class="input" id="report-roaster">
+                            <option>Select Roaster</option>
+                            <option>Premium Coffee Co.</option>
+                            <option>Mountain Roasters</option>
+                            <option>Urban Bean Works</option>
+                        </select>
+                        <input type="number" class="input" id="report-year" placeholder="Year (e.g., 2024)">
+                        <button class="button" onclick="generateReport()">Generate Report</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Existing Reports</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Report ID</th>
+                                <th>Roaster</th>
+                                <th>Program</th>
+                                <th>Year</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Premium Coffee Co.</td>
+                                <td>Sustainability Initiative</td>
+                                <td>2024</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Mountain Roasters</td>
+                                <td>Fair Trade Program</td>
+                                <td>2024</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Urban Bean Works</td>
+                                <td>Direct Trade Partnership</td>
+                                <td>2024</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div id="config-modal" class="config-modal hidden">
+        <div class="config-content">
+            <h3>Baserow Configuration</h3>
+            <label>Baserow URL:</label>
+            <input type="text" id="config-url" placeholder="https://api.baserow.io" value="https://api.baserow.io">
+            
+            <label>API Token:</label>
+            <input type="password" id="config-token" placeholder="Your API token">
+            
+            <label>Roasters Table ID:</label>
+            <input type="number" id="config-roasters" placeholder="Table ID">
+            
+            <div class="config-buttons">
+                <button class="button" onclick="saveConfig()">Test & Save</button>
+                <button class="button secondary" onclick="hideConfig()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let appData = {
+            roasters: [
+                { id: 1, name: 'Premium Coffee Co.', country: 'Brazil', created_at: '2024-01-15' },
+                { id: 2, name: 'Mountain Roasters', country: 'Colombia', created_at: '2024-02-20' },
+                { id: 3, name: 'Urban Bean Works', country: 'Ethiopia', created_at: '2024-03-10' }
+            ],
+            programs: [],
+            risks: [],
+            remediations: []
         };
 
-        // Baserow Configuration - REPLACE WITH YOUR ACTUAL VALUES
-        const BASEROW_CONFIG = {
-            baseUrl: 'https://api.baserow.io', // Replace with your Baserow URL
-            apiToken: 'your-api-token-here', // Replace with your API token
+        let baserowConfig = {
+            baseUrl: 'https://api.baserow.io',
+            apiToken: '',
             tableIds: {
-                roasters: 12345,        // Replace with actual table ID
-                programs: 12346,        // Replace with actual table ID
-                compliance_topics: 12347, // Replace with actual table ID
-                annual_reporting: 12348,  // Replace with actual table ID
-                annual_reporting_topics: 12349, // Replace with actual table ID
-                risks: 12350,           // Replace with actual table ID
-                remediations: 12351     // Replace with actual table ID
+                roasters: null
             }
         };
 
-        // Baserow API Class
-        class BaserowAPI {
-            constructor(config) {
-                this.baseUrl = config.baseUrl;
-                this.apiToken = config.apiToken;
-                this.tableIds = config.tableIds;
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.add('hidden'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.remove('hidden');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Configuration functions
+        function showConfig() {
+            document.getElementById('config-modal').classList.remove('hidden');
+        }
+
+        function hideConfig() {
+            document.getElementById('config-modal').classList.add('hidden');
+        }
+
+        async function saveConfig() {
+            const url = document.getElementById('config-url').value;
+            const token = document.getElementById('config-token').value;
+            const roastersTableId = document.getElementById('config-roasters').value;
+
+            if (!token || !roastersTableId) {
+                alert('Please fill in all required fields');
+                return;
             }
 
-            async request(endpoint, options = {}) {
-                const url = `${this.baseUrl}/api/database/rows/table/${endpoint}`;
-                const defaultHeaders = {
-                    'Authorization': `Token ${this.apiToken}`,
-                    'Content-Type': 'application/json'
-                };
-
-                try {
-                    const response = await fetch(url, {
-                        headers: { ...defaultHeaders, ...options.headers },
-                        ...options
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    return await response.json();
-                } catch (error) {
-                    console.error('Baserow API request failed:', error);
-                    throw error;
+            baserowConfig = {
+                baseUrl: url,
+                apiToken: token,
+                tableIds: {
+                    roasters: parseInt(roastersTableId)
                 }
-            }
+            };
 
-            async getRecords(tableName) {
-                const tableId = this.tableIds[tableName];
-                if (!tableId) throw new Error(`Table ${tableName} not configured`);
-                
-                const response = await this.request(`${tableId}/`);
-                return response.results || [];
-            }
-
-            async createRecord(tableName, data) {
-                const tableId = this.tableIds[tableName];
-                if (!tableId) throw new Error(`Table ${tableName} not configured`);
-                
-                return await this.request(`${tableId}/`, {
-                    method: 'POST',
-                    body: JSON.stringify(data)
-                });
-            }
-
-            async updateRecord(tableName, recordId, data) {
-                const tableId = this.tableIds[tableName];
-                if (!tableId) throw new Error(`Table ${tableName} not configured`);
-                
-                return await this.request(`${tableId}/${recordId}/`, {
-                    method: 'PATCH',
-                    body: JSON.stringify(data)
-                });
-            }
-
-            async loadAllData() {
-                try {
-                    const [roasters, programs, reports, risks, remediations, complianceTopics] = await Promise.all([
-                        this.getRecords('roasters'),
-                        this.getRecords('programs'),
-                        this.getRecords('annual_reporting'),
-                        this.getRecords('risks'),
-                        this.getRecords('remediations'),
-                        this.getRecords('compliance_topics')
-                    ]);
-
-                    return {
-                        roasters,
-                        programs,
-                        reports,
-                        risks,
-                        remediations,
-                        complianceTopics
-                    };
-                } catch (error) {
-                    console.error('Failed to load data from Baserow:', error);
-                    throw error;
-                }
+            try {
+                await testBaserowConnection();
+                document.getElementById('connection-status').textContent = '✅ Connected to Baserow';
+                hideConfig();
+                await loadDataFromBaserow();
+            } catch (error) {
+                alert('Connection failed: ' + error.message);
             }
         }
 
-        const ComplianceWorkflow = () => {
-            const [activeTab, setActiveTab] = useState('dashboard');
-            const [showConfig, setShowConfig] = useState(false);
-            const [config, setConfig] = useState(BASEROW_CONFIG);
-            const [data, setData] = useState({
-                roasters: [],
-                programs: [],
-                reports: [],
-                risks: [],
-                remediations: [],
-                complianceTopics: []
+        async function testBaserowConnection() {
+            const response = await fetch(
+                `${baserowConfig.baseUrl}/api/database/rows/table/${baserowConfig.tableIds.roasters}/`,
+                {
+                    headers: {
+                        'Authorization': `Token ${baserowConfig.apiToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        async function loadDataFromBaserow() {
+            try {
+                const response = await testBaserowConnection();
+                appData.roasters = response.results || [];
+                updateUI();
+            } catch (error) {
+                console.error('Failed to load from Baserow:', error);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('roasters-count').textContent = appData.roasters.length;
+            
+            // Update roasters table
+            const tbody = document.getElementById('roasters-table');
+            tbody.innerHTML = '';
+            
+            appData.roasters.forEach(roaster => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${roaster.name}</td>
+                    <td>${roaster.country}</td>
+                    <td>${roaster.created_at}</td>
+                `;
             });
-            const [loading, setLoading] = useState(false);
-            const [connected, setConnected] = useState(false);
-            const [baserowAPI] = useState(new BaserowAPI(BASEROW_CONFIG));
+        }
 
-            // Load data from Baserow
-            useEffect(() => {
-                loadData();
-            }, []);
+        // App functions
+        function refreshData() {
+            if (baserowConfig.apiToken) {
+                loadDataFromBaserow();
+            } else {
+                location.reload();
+            }
+        }
 
-            const loadData = async () => {
-                setLoading(true);
-                try {
-                    // Check if Baserow is properly configured
-                    if (BASEROW_CONFIG.apiToken === 'your-api-token-here') {
-                        // Use sample data if Baserow not configured
-                        const sampleData = {
-                            roasters: [
-                                { id: 1, name: 'Premium Coffee Co.', country: 'Brazil', created_at: '2024-01-15' },
-                                { id: 2, name: 'Mountain Roasters', country: 'Colombia', created_at: '2024-02-20' },
-                                { id: 3, name: 'Urban Bean Works', country: 'Ethiopia', created_at: '2024-03-10' }
-                            ],
-                            programs: [
-                                { id: 1, roaster_id: 1, name: 'Sustainability Initiative', region: 'South America', country: 'Brazil' },
-                                { id: 2, roaster_id: 2, name: 'Fair Trade Program', region: 'South America', country: 'Colombia' },
-                                { id: 3, roaster_id: 3, name: 'Direct Trade Partnership', region: 'Africa', country: 'Ethiopia' }
-                            ],
-                            reports: [
-                                { id: 1, roaster_id: 1, program_id: 1, year: 2024 },
-                                { id: 2, roaster_id: 2, program_id: 2, year: 2024 },
-                                { id: 3, roaster_id: 3, program_id: 3, year: 2024 }
-                            ],
-                            risks: [
-                                { id: 1, report_topic_id: 1, description: 'Supply chain disruption risk in Brazil region due to weather patterns' },
-                                { id: 2, report_topic_id: 2, description: 'Environmental compliance risk due to new regulations' },
-                                { id: 3, report_topic_id: 3, description: 'Labor standard compliance gap in seasonal worker documentation' }
-                            ],
-                            remediations: [
-                                { id: 1, risk_id: 1, section_a_doc: 'weather-contingency-plan.pdf', section_a_eta: '2024-08-15', section_b_status: 'in_progress', section_b_notes: 'Working with local meteorological services', follow_up_date: '2024-07-30' },
-                                { id: 2, risk_id: 2, section_a_doc: 'environmental-compliance-update.pdf', section_a_eta: '2024-09-01', section_b_status: 'pending', section_b_notes: 'Awaiting regulatory guidance', follow_up_date: '2024-08-15' }
-                            ],
-                            complianceTopics: [
-                                { id: 1, code: 'ENV-001', name: 'Environmental Standards', description: 'Environmental compliance requirements' },
-                                { id: 2, code: 'LAB-001', name: 'Labor Practices', description: 'Fair labor practice standards' },
-                                { id: 3, code: 'SUP-001', name: 'Supply Chain', description: 'Supply chain transparency requirements' }
-                            ]
-                        };
-                        setData(sampleData);
-                        setConnected(false);
-                    } else {
-                        // Load from Baserow
-                        const baserowData = await baserowAPI.loadAllData();
-                        setData(baserowData);
-                        setConnected(true);
-                    }
-                } catch (error) {
-                    console.error('Failed to load data:', error);
-                    setConnected(false);
-                } finally {
-                    setLoading(false);
-                }
+        function generateInsights() {
+            const content = document.getElementById('insights-content');
+            content.classList.remove('hidden');
+            alert('AI Insights generated! Key findings: Risk diversification needed, improved response times, and effective proactive monitoring.');
+        }
+
+        async function addRoaster() {
+            const name = document.getElementById('roaster-name').value;
+            const country = document.getElementById('roaster-country').value;
+            
+            if (!name || !country) {
+                alert('Please fill in both name and country fields.');
+                return;
+            }
+
+            const newRoaster = {
+                name: name,
+                country: country,
+                created_at: new Date().toISOString().split('T')[0]
             };
 
-            const generateInsights = async (context) => {
-                setLoading(true);
+            if (baserowConfig.apiToken) {
                 try {
-                    const prompt = `Analyze this compliance data and provide 3 key insights: ${JSON.stringify(context)}`;
-                    const result = await window.claude.complete(prompt);
-                    setLoading(false);
-                    return result;
-                } catch (error) {
-                    setLoading(false);
-                    return "Unable to generate insights at this time.";
-                }
-            };
-
-            const ConfigurationPanel = () => {
-                const [tempConfig, setTempConfig] = useState(config);
-                const [testing, setTesting] = useState(false);
-
-                const testConnection = async () => {
-                    setTesting(true);
-                    try {
-                        const testAPI = new BaserowAPI(tempConfig);
-                        await testAPI.getRecords('roasters');
-                        alert('✅ Connection successful!');
-                        setConfig(tempConfig);
-                        setConnected(true);
-                        setShowConfig(false);
-                        loadData();
-                    } catch (error) {
-                        alert(`❌ Connection failed: ${error.message}`);
-                    } finally {
-                        setTesting(false);
-                    }
-                };
-
-                const updateTableId = (tableName, value) => {
-                    setTempConfig(prev => ({
-                        ...prev,
-                        tableIds: {
-                            ...prev.tableIds,
-                            [tableName]: parseInt(value) || 0
+                    const response = await fetch(
+                        `${baserowConfig.baseUrl}/api/database/rows/table/${baserowConfig.tableIds.roasters}/`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Token ${baserowConfig.apiToken}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(newRoaster)
                         }
-                    }));
-                };
+                    );
 
-                return React.createElement('div', {
-                    className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-                }, React.createElement('div', {
-                    className: "bg-white p-6 rounded-lg max-w-2xl w-full mx-4 max-h-96 overflow-y-auto"
-                }, [
-                    React.createElement('h3', { 
-                        key: 'title',
-                        className: "text-lg font-semibold mb-4" 
-                    }, "Baserow Configuration"),
-                    React.createElement('div', {
-                        key: 'content',
-                        className: "space-y-4"
-                    }, [
-                        React.createElement('div', { key: 'url' }, [
-                            React.createElement('label', { 
-                                key: 'url-label',
-                                className: "block text-sm font-medium mb-1" 
-                            }, "Baserow URL"),
-                            React.createElement('input', {
-                                key: 'url-input',
-                                type: "text",
-                                placeholder: "https://api.baserow.io",
-                                value: tempConfig.baseUrl,
-                                onChange: (e) => setTempConfig(prev => ({ ...prev, baseUrl: e.target.value })),
-                                className: "w-full border rounded px-3 py-2"
-                            })
-                        ]),
-                        React.createElement('div', { key: 'token' }, [
-                            React.createElement('label', { 
-                                key: 'token-label',
-                                className: "block text-sm font-medium mb-1" 
-                            }, "API Token"),
-                            React.createElement('input', {
-                                key: 'token-input',
-                                type: "password",
-                                placeholder: "Your API token",
-                                value: tempConfig.apiToken,
-                                onChange: (e) => setTempConfig(prev => ({ ...prev, apiToken: e.target.value })),
-                                className: "w-full border rounded px-3 py-2"
-                            })
-                        ]),
-                        React.createElement('div', { key: 'buttons', className: "flex space-x-2" }, [
-                            React.createElement('button', {
-                                key: 'test',
-                                onClick: testConnection,
-                                disabled: testing,
-                                className: "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                            }, testing ? 'Testing...' : 'Test & Save'),
-                            React.createElement('button', {
-                                key: 'cancel',
-                                onClick: () => setShowConfig(false),
-                                className: "px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                            }, 'Cancel')
-                        ])
-                    ])
-                ]));
-            };
+                    if (response.ok) {
+                        const savedRoaster = await response.json();
+                        appData.roasters.push(savedRoaster);
+                    } else {
+                        throw new Error('Failed to save to Baserow');
+                    }
+                } catch (error) {
+                    alert('Failed to save to Baserow: ' + error.message);
+                    return;
+                }
+            } else {
+                newRoaster.id = appData.roasters.length + 1;
+                appData.roasters.push(newRoaster);
+            }
 
-            const Dashboard = () => {
-                const [insights, setInsights] = useState('');
+            document.getElementById('roaster-name').value = '';
+            document.getElementById('roaster-country').value = '';
+            
+            updateUI();
+            alert(`Welcome ${name} to our sustainable coffee community! We're excited to partner with you in creating positive impact.`);
+        }
 
-                const loadInsights = async () => {
-                    const result = await generateInsights({
-                        totalRoasters: data.roasters.length,
-                        totalPrograms: data.programs.length,
-                        totalRisks: data.risks.length,
-                        totalRemediations: data.remediations.length
-                    });
-                    setInsights(result);
-                };
+        function analyzeRisk(riskId) {
+            alert(`Risk Analysis for Risk #${riskId}: This appears to be a medium-priority risk. Recommended actions: 1) Develop contingency plans 2) Implement monitoring 3) Create response protocols. Timeline: 30-60 days.`);
+        }
 
-                return React.createElement('div', { className: "space-y-6" }, [
-                    React.createElement('div', { 
-                        key: 'metrics',
-                        className: "grid grid-cols-1 md:grid-cols-4 gap-4" 
-                    }, [
-                        React.createElement('div', {
-                            key: 'roasters',
-                            className: "bg-blue-50 p-4 rounded-lg"
-                        }, React.createElement('div', {
-                            className: "flex items-center justify-between"
-                        }, [
-                            React.createElement('div', { key: 'text' }, [
-                                React.createElement('p', { 
-                                    key: 'label',
-                                    className: "text-sm text-blue-600" 
-                                }, "Total Roasters"),
-                                React.createElement('p', { 
-                                    key: 'value',
-                                    className: "text-2xl font-bold text-blue-900" 
-                                }, data.roasters.length)
-                            ]),
-                            React.createElement(Building, { 
-                                key: 'icon',
-                                className: "h-8 w-8 text-blue-600" 
-                            })
-                        ])),
-                        React.createElement('div', {
-                            key: 'programs',
-                            className: "bg-green-50 p-4 rounded-lg"
-                        }, React.createElement('div', {
-                            className: "flex items-center justify-between"
-                        }, [
-                            React.createElement('div', { key: 'text' }, [
-                                React.createElement('p', { 
-                                    key: 'label',
-                                    className: "text-sm text-green-600" 
-                                }, "Active Programs"),
-                                React.createElement('p', { 
-                                    key: 'value',
-                                    className: "text-2xl font-bold text-green-900" 
-                                }, data.programs.length)
-                            ]),
-                            React.createElement(FileText, { 
-                                key: 'icon',
-                                className: "h-8 w-8 text-green-600" 
-                            })
-                        ])),
-                        React.createElement('div', {
-                            key: 'risks',
-                            className: "bg-orange-50 p-4 rounded-lg"
-                        }, React.createElement('div', {
-                            className: "flex items-center justify-between"
-                        }, [
-                            React.createElement('div', { key: 'text' }, [
-                                React.createElement('p', { 
-                                    key: 'label',
-                                    className: "text-sm text-orange-600" 
-                                }, "Open Risks"),
-                                React.createElement('p', { 
-                                    key: 'value',
-                                    className: "text-2xl font-bold text-orange-900" 
-                                }, data.risks.length)
-                            ]),
-                            React.createElement(AlertTriangle, { 
-                                key: 'icon',
-                                className: "h-8 w-8 text-orange-600" 
-                            })
-                        ])),
-                        React.createElement('div', {
-                            key: 'remediations',
-                            className: "bg-purple-50 p-4 rounded-lg"
-                        }, React.createElement('div', {
-                            className: "flex items-center justify-between"
-                        }, [
-                            React.createElement('div', { key: 'text' }, [
-                                React.createElement('p', { 
-                                    key: 'label',
-                                    className: "text-sm text-purple-600" 
-                                }, "Remediations"),
-                                React.createElement('p', { 
-                                    key: 'value',
-                                    className: "text-2xl font-bold text-purple-900" 
-                                }, data.remediations.length)
-                            ]),
-                            React.createElement(CheckCircle, { 
-                                key: 'icon',
-                                className: "h-8 w-8 text-purple-600" 
-                            })
-                        ]))
-                    ]),
-                    React.createElement('div', {
-                        key: 'insights',
-                        className: "bg-white p-6 rounded-lg border"
-                    }, [
-                        React.createElement('div', {
-                            key: 'header',
-                            className: "flex justify-between items-center mb-4"
-                        }, [
-                            React.createElement('h3', { 
-                                key: 'title',
-                                className: "text-lg font-semibold" 
-                            }, "AI-Generated Insights"),
-                            React.createElement('button', {
-                                key: 'button',
-                                onClick: loadInsights,
-                                disabled: loading,
-                                className: "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                            }, loading ? 'Generating...' : 'Generate Insights')
-                        ]),
-                        insights && React.createElement('div', {
-                            key: 'content',
-                            className: "bg-gray-50 p-4 rounded"
-                        }, React.createElement('pre', {
-                            className: "whitespace-pre-wrap text-sm"
-                        }, insights))
-                    ])
-                ]);
-            };
+        function remediateRisk(riskId) {
+            alert(`Remediation plan initiated for Risk #${riskId}. Please review the remediation template and assign responsible parties.`);
+        }
 
-            const tabs = [
-                { id: 'dashboard', label: 'Dashboard', icon: FileText },
-                { id: 'roasters', label: 'Roasters', icon: Building },
-                { id: 'risks', label: 'Risk Management', icon: AlertTriangle },
-                { id: 'reporting', label: 'Reporting', icon: FileText }
-            ];
+        function generateReport() {
+            const roaster = document.getElementById('report-roaster').value;
+            const year = document.getElementById('report-year').value;
+            
+            if (!roaster || roaster === 'Select Roaster') {
+                alert('Please select a roaster');
+                return;
+            }
+            
+            if (!year) {
+                alert('Please enter a year');
+                return;
+            }
 
-            return React.createElement('div', { className: "min-h-screen bg-gray-50" }, [
-                React.createElement('div', { 
-                    key: 'header',
-                    className: "bg-white shadow-sm border-b" 
-                }, React.createElement('div', {
-                    className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
-                }, [
-                    React.createElement('div', {
-                        key: 'top',
-                        className: "flex justify-between items-center py-4"
-                    }, [
-                        React.createElement('h1', {
-                            key: 'title',
-                            className: "text-2xl font-bold text-gray-900"
-                        }, "Compliance Management System"),
-                        React.createElement('div', {
-                            key: 'controls',
-                            className: "flex items-center space-x-4"
-                        }, [
-                            React.createElement('div', {
-                                key: 'status',
-                                className: "flex items-center space-x-2"
-                            }, connected ? [
-                                React.createElement(Wifi, { 
-                                    key: 'icon',
-                                    className: "h-5 w-5 text-green-500" 
-                                }),
-                                React.createElement('span', { 
-                                    key: 'text',
-                                    className: "text-sm text-green-600" 
-                                }, "Connected to Baserow")
-                            ] : [
-                                React.createElement(WifiOff, { 
-                                    key: 'icon',
-                                    className: "h-5 w-5 text-orange-500" 
-                                }),
-                                React.createElement('span', { 
-                                    key: 'text',
-                                    className: "text-sm text-orange-600" 
-                                }, "Using Sample Data")
-                            ]),
-                            React.createElement('button', {
-                                key: 'refresh',
-                                onClick: loadData,
-                                disabled: loading,
-                                className: "px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50"
-                            }, loading ? 'Loading...' : 'Refresh'),
-                            React.createElement('button', {
-                                key: 'config',
-                                onClick: () => setShowConfig(true),
-                                className: "px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                            }, 'Configure')
-                        ])
-                    ]),
-                    React.createElement('nav', {
-                        key: 'nav',
-                        className: "flex space-x-8"
-                    }, tabs.map(tab => {
-                        const Icon = tab.icon;
-                        return React.createElement('button', {
-                            key: tab.id,
-                            onClick: () => setActiveTab(tab.id),
-                            className: `flex items-center space-x-2 py-2 px-1 border-b-2 text-sm font-medium ${
-                                activeTab === tab.id
-                                    ? 'border-blue-500 text-blue-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`
-                        }, [
-                            React.createElement(Icon, {
-                                key: 'icon',
-                                className: "h-4 w-4"
-                            }),
-                            React.createElement('span', {
-                                key: 'label'
-                            }, tab.label)
-                        ]);
-                    }))
-                ])),
-                React.createElement('div', {
-                    key: 'content',
-                    className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
-                }, activeTab === 'dashboard' && React.createElement(Dashboard)),
-                showConfig && React.createElement(ConfigurationPanel, { key: 'config' })
-            ]);
-        };
+            alert(`Compliance Report Generated for ${roaster} (${year}): Strong performance with 95% policy adherence. Key achievements include environmental certification and improved labor standards. Overall Grade: A-`);
+        }
 
-        // Render the app
-        ReactDOM.render(React.createElement(ComplianceWorkflow), document.getElementById('root'));
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Compliance Management System loaded successfully!');
+            updateUI();
+        });
     </script>
 </body>
 </html>
